@@ -1,8 +1,8 @@
-<?php
+<?php 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\TaskController;
 
-//Test Api
 Route::get('/', function () {
     return response()->json(true);
 });
@@ -11,13 +11,19 @@ Route::get('/', function () {
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// User routes (protected)
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
 
-    Route::get('/users/{id}', [UserController::class, 'show']);
-    Route::delete('/users/{id}', [UserController::class, 'delete']);
-    Route::put('/users/{id}', [UserController::class, 'update']);
+Route::middleware('auth:sanctum')->group(function () {
+    // User Routes
+    Route::get('/user', [UserController::class, 'getUser']);
+    Route::put('/user', [UserController::class, 'update']); 
+    Route::delete('/user', [UserController::class, 'delete']); 
+
+    // Task Routes
+    Route::prefix('users/{userId}/tasks')->group(function () {
+        Route::get('/', [TaskController::class, 'index']);
+        Route::post('/', [TaskController::class, 'create']);
+        Route::get('/{taskId}', [TaskController::class, 'getTask']);
+        Route::put('/{taskId}', [TaskController::class, 'update']);
+        Route::delete('/{taskId}', [TaskController::class, 'delete']);
+    });
 });

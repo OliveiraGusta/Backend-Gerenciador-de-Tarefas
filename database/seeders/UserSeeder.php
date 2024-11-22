@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
     {
         User::create([
             'name' => 'Usuário Teste',
-            'email' => 'teste@example.com',
+            'email' => 'teste@teste.com',
             'password' => Hash::make('senha123'),  
             'githubUsername' => 'usuario-github',
         ]);
