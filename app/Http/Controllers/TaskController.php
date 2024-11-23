@@ -8,11 +8,36 @@ use App\Models\Task;
 
 class TaskController extends Controller
 {   
-    public function index(Request $request)
+    public function index(Request $request, $userId)
     {
-        $tasks = Task::all();  
+        $user = $request->user();
 
-        return response()->json($tasks); 
+        if ($user->id != $userId) {
+            return response()->json(["error" => "Unauthorized"], 403);
+        }
+
+        $tasks = Task::where('userOwner', $userId)->get();
+
+        return response()->json($tasks, 200);
+    }
+
+
+
+    public function getTask(Request $request, $userId, $taskId)
+    {
+        $user = $request->user();
+
+        if ($user->id != $userId) {
+            return response()->json(["error" => "Unauthorized"], 403);
+        }
+
+        $task = Task::where('id', operator: $taskId)->where('userOwner', $userId)->first();
+
+        if (!$task) {
+            return response()->json(["error" => "Task not found"], 404);
+        }
+
+        return response()->json($task, 200);
     }
 
     public function create(Request $request)
@@ -38,22 +63,6 @@ class TaskController extends Controller
         ], 201);
     }
 
-    public function getTask(Request $request, $userId, $taskId)
-    {
-        $user = $request->user();
-
-        if ($user->id != $userId) {
-            return response()->json(["error" => "Unauthorized"], 403);
-        }
-
-        $task = Task::where('id', $taskId)->where('userOwner', $userId)->first();
-
-        if (!$task) {
-            return response()->json(["error" => "Task not found"], 404);
-        }
-
-        return response()->json($task, 200);
-    }
 
     public function update(Request $request, $userId, $taskId)
     {
