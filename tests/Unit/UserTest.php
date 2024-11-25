@@ -8,7 +8,7 @@ use App\Models\User;
 
 class UserTest extends TestCase
 {
-    use RefreshDatabase; // Garante que o banco é limpo antes de cada teste.
+    use RefreshDatabase; 
 
     public function test_user_can_be_created()
     {

@@ -1,195 +1,103 @@
-<?php 
+<?php
 
 namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
-class UserCrudTest extends TestCase {
-    use RefreshDatabase; 
+class UserCrudTest extends TestCase
+{
+    use RefreshDatabase;
 
-    /** @test */
-    public function it_can_create_a_user() {
-        $userData = [
-            'name' => 'Test 1',
-            'email' => 'Test@example.com',
-            'password' => 'password123',
-            'githubUsername' => 'testuser',
+    // Teste de registro de usuário
+    public function test_register_user()
+    {
+        $data = [
+            'name' => 'Teste User',
+            'email' => 'teste@example.com',
+            'password' => 'teste123',
+            'githubUsername' => 'teste',
         ];
 
-        $response = $this->postJson('/api/register', $userData);
+        $response = $this->postJson('/api/register', $data);
 
-        $response->assertStatus(201)
-                 ->assertJson([
-                     'message' => 'User created successfully',
-                 ]);
-
-        $this->assertDatabaseHas('users', [
-            'email' => 'Test@example.com',
+        $response->assertStatus(201);
+        $response->assertJson([
+            'message' => 'User created successfully',
         ]);
+        $this->assertDatabaseHas('users', ['email' => 'teste@example.com']);
     }
 
-    /** @test */
-    public function it_can_get_user_by_id() {
-        $user = User::factory()->create();
-        $token = $user->createToken('Test Token')->plainTextToken;
-        
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-        ])->getJson("/api/users/{$user->id}");
-
-        $response->assertStatus(200)
-                ->assertJson([
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'githubUsername' => $user->githubUsername,
-                ]);
-    }
-
-    /** @test */
-    public function it_can_update_a_user() {
-        $user = User::factory()->create();
-        $token = $user->createToken('Test Token')->plainTextToken;
-
-        $updatedData = [
-            'name' => 'Updated Name',
-            'email' => 'updated@example.com',
-            'githubUsername' => 'Updated Github',
-        ];
-
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-        ])->putJson("/api/users/{$user->id}", $updatedData);
-
-      
-        $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'User updated successfully',
-                ]);
-
-       
-        $this->assertDatabaseHas('users', [
-            'name' => 'Updated Name',
-            'email' => 'updated@example.com',
-            'githubUsername' => 'Updated Github',
+    public function test_login_user()
+    {
+        $user = User::factory()->create([
+            'email' => 'teste@example.com',
+            'password' => Hash::make('teste123'),
         ]);
+
+        $response = $this->postJson('/api/login', [
+            'email' => 'teste@example.com',
+            'password' => 'teste123',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['access_token', 'token_type']);
     }
 
-    /** @test */
-    public function it_can_delete_a_user() {
-        // Cria o usuário
+    public function test_show_user()
+    {
         $user = User::factory()->create();
 
-        // Cria o token do usuário
-        $token = $user->createToken('Test Token')->plainTextToken;
+        $response = $this->actingAs($user)->getJson('/api/user');
 
-        // Realiza a requisição DELETE para excluir o usuário com o token
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-        ])->deleteJson("/api/users/{$user->id}");
-
-        // Verifica se a resposta tem o status correto
-        $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'User deleted successfully',
-                ]);
-
-        // Verifica se o usuário foi deletado do banco de dados
-        $this->assertDatabaseMissing('users', [
+        $response->assertStatus(200);
+        $response->assertJson([
             'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'githubUsername' => $user->githubUsername,
         ]);
     }
 
-    /** @test */
-    public function it_cannot_update_another_user() {
-        // Tenta atualizar o user2 com o token do user1 
-
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-
-        $token = $user1->createToken('Test Token')->plainTextToken;
-
-        $updatedData = [
-            'name' => 'Updated Name',
-            'email' => 'updated@example.com',
-            'githubUsername' => 'Updated Github',
-        ];
-
-    
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-        ])->putJson("/api/users/{$user2->id}", $updatedData);
-
-        $response->assertStatus(403)
-                ->assertJson([
-                    'error' => 'Unauthorized',
-                ]);
-    }
-    
-    /** @test */
-    public function it_cannot_delete_another_user() {
-        // Tenta deletar o user2 com o token do user1 
-
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-
-        $token = $user1->createToken('Test Token')->plainTextToken;
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-        ])->deleteJson("/api/users/{$user2->id}");
-
-        $response->assertStatus(403)
-                ->assertJson([
-                    'error' => 'Unauthorized',
-                ]);
-    }
-
-    /** @test */
-    public function it_can_update_its_own_user() {
-
+    public function test_update_user()
+    {
         $user = User::factory()->create();
-        $token = $user->createToken('Test Token')->plainTextToken;
 
-        $updatedData = [
-            'name' => 'Updated Name',
-            'email' => 'updated@example.com',
-            'githubUsername' => 'Updated Github',
-        ];
+        $data = ['githubUsername' => 'updatedUsername'];
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-        ])->putJson("/api/users/{$user->id}", $updatedData);
+        $response = $this->actingAs($user)->putJson('/api/user', $data);
 
-        $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'User updated successfully',
-                ]);
-        $this->assertDatabaseHas('users', [
-            'name' => 'Updated Name',
-            'email' => 'updated@example.com',
-            'githubUsername' => 'Updated Github',
-        ]);
+        $response->assertStatus(200);
+        $response->assertJson(['message' => 'User updated successfully']);
+        $this->assertDatabaseHas('users', ['githubUsername' => 'updatedUsername']);
     }
 
-    /** @test */
-    public function it_can_delete_its_own_user() {
+    public function test_delete_user()
+    {
         $user = User::factory()->create();
-        $token = $user->createToken('Test Token')->plainTextToken;
 
-        $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-        ])->deleteJson("/api/users/{$user->id}");
+        $response = $this->actingAs($user)->deleteJson('/api/user');
 
-        $response->assertStatus(200)
-                ->assertJson([
-                    'message' => 'User deleted successfully',
-                ]);
-        $this->assertDatabaseMissing('users', [
+        $response->assertStatus(200);
+        $response->assertJson(['message' => 'User deleted successfully']);
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+    }
+
+    public function test_get_authenticated_user()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->getJson('/api/user');
+
+        $response->assertStatus(200);
+        $response->assertJson([
             'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'githubUsername' => $user->githubUsername,
         ]);
     }
-
 }
-
