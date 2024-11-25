@@ -18,8 +18,8 @@ class CreateTasksTable extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('status');
-            $table->foreignId('userOwner')->constrained('users')->onDelete('cascade'); // Referência ao usuário
-            $table->timestamps(); // Cria created_at e updated_at
+            $table->foreignId('userOwner')->constrained('users')->onDelete('cascade');
+            $table->timestamps(); 
         });
     }
 

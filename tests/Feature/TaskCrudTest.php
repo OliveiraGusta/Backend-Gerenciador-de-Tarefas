@@ -42,7 +42,7 @@ class TaskCrudTest extends TestCase
         $taskData = [
             'title' => 'New Task',
             'description' => 'Description for new task',
-            'status' => 'pending',
+            'status' => 0,
         ];
 
         $response = $this->actingAs($this->user)->post('/api/users/' . $this->user->id . '/tasks', $taskData);
@@ -76,7 +76,7 @@ class TaskCrudTest extends TestCase
         $updateData = [
             'title' => 'Updated Task Title',
             'description' => 'Updated description',
-            'status' => 'completed',
+            'status' => 2,
         ];
 
         $response = $this->actingAs($this->user)
@@ -89,7 +89,7 @@ class TaskCrudTest extends TestCase
                          'id' => $this->task->id,
                          'title' => 'Updated Task Title',
                          'description' => 'Updated description',
-                         'status' => 'completed',
+                         'status' => 2,
                      ]
                  ]);
     }

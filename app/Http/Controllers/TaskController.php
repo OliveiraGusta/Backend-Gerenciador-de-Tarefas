@@ -21,8 +21,6 @@ class TaskController extends Controller
         return response()->json($tasks, 200);
     }
 
-
-
     public function getTask(Request $request, $userId, $taskId)
     {
         $user = $request->user();
@@ -47,7 +45,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'required|string',
+            'status' => 'required|integer',
         ]);
 
         $task = Task::create([
@@ -81,10 +79,9 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'nullable|string',
+            'status' => 'nullable|integer',
         ]);
 
-        // Atualiza a task com os dados validados
         $task->update($validated);
 
         return response()->json([
