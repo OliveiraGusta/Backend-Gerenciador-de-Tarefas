@@ -16,14 +16,14 @@ class TaskSeeder extends Seeder
             'title' => 'Task Teste 1',
             'description' => 'Descrição da Task Teste 1',
             'status' => 0,
-            'userOwner' => 1, 
+            'userOwner' => 1, // UserID
         ]);
 
         Task::create([
             'title' => 'Task Teste 2',
             'description' => 'Descrição da Task Teste 2',
             'status' => 2,
-            'userOwner' => 1, 
+            'userOwner' => 1,  // UserID
         ]);
     }
 }
